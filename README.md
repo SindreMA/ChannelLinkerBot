@@ -1,5 +1,4 @@
-# Discord.Net Utility Bot
-A utility bot for Discord.Net's support channels.
+# Discord.Net ChannelLinkerBot
 
 ### Compiling
 This bot requires:

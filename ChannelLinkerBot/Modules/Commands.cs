@@ -1,4 +1,4 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using ChannelLinkerBot.DTO;
 using System;
 using System.Collections.Generic;
@@ -17,16 +17,16 @@ namespace ChannelLinkerBot.Modules
         [Alias("?")]
         public async Task help()
         {
-            await Context.Channel.SendMessageAsync 
+            await Context.Channel.SendMessageAsync
                 (
                 "*(A link is a connection between 1 channal to another, this means that all messages posted in channel A goes also to channel B)*" + Environment.NewLine + Environment.NewLine +
                 "**help** (Shows this message)" + Environment.NewLine +
                 "**.ShowLinks** (Returns all the current linked channels in the server)" + Environment.NewLine +
                 "**.DeleteLink [FromChannelID] [ToChannelID]** (Deletes the specified link)" + Environment.NewLine +
                 "**.CreateLink [FromChannelID] [ToChannelID]** (Creates a link from the first channel to the second channel)" + Environment.NewLine +
-                "**.ResetLinks** (Removes all links and Removes all prefixes)" + Environment.NewLine+
+                "**.ResetLinks** (Removes all links and Removes all prefixes)" + Environment.NewLine +
                 "**.Prefix [prefix message here]** (Lets you make the bot say something before it repeats the message)" + Environment.NewLine +
-                "*(You can use [USER] and [CHANNEL] to make it specifi who and where it came from)*" 
+                "*(You can use [USER] and [CHANNEL] to make it specifi who and where it came from)*"
                 );
         }
         [Command("resetlinks")]
@@ -38,7 +38,7 @@ namespace ChannelLinkerBot.Modules
                 var s = CommandHandler.MessagePrefixList.Remove(CommandHandler.MessagePrefixList.Find(x => x.GuildID == Context.Guild.Id));
                 File.WriteAllText("ChannelsLinked.json", JsonConvert.SerializeObject(CommandHandler.ChannelsLinkedList));
 
-                
+
                 foreach (var item in CommandHandler.ChannelsLinkedList.FindAll(x => x.GuildID == Context.Guild.Id))
                 {
                     CommandHandler.ChannelsLinkedList.Remove(item);
@@ -60,7 +60,7 @@ namespace ChannelLinkerBot.Modules
             string msg = "";
             try
             {
-                
+
                 foreach (var item in CommandHandler.ChannelsLinkedList.FindAll(x => x.GuildID == Context.Guild.Id))
                 {
                     msg = msg + " From =  **" + Context.Guild.GetChannel(item.ChannelCopyFrom).Name + "**(*" + item.ChannelCopyFrom + "*)" + " To = **" + Context.Guild.GetChannel(item.ChannelCopyTo).Name + "**(*" + item.ChannelCopyTo + "*)" + Environment.NewLine;
@@ -95,11 +95,11 @@ namespace ChannelLinkerBot.Modules
                 await Context.Channel.SendMessageAsync("Link was not found!");
             }
 
-            
+
 
         }
         [Command("CreateLink")]
-        public async Task link(ulong from , ulong to)
+        public async Task link(ulong from, ulong to)
         {
             if (CommandHandler.ChannelsLinkedList.FindAll(x => x.ChannelCopyFrom == to).Count != 0)
             {
@@ -118,7 +118,7 @@ namespace ChannelLinkerBot.Modules
 
                 File.WriteAllText("ChannelsLinked.json", JsonConvert.SerializeObject(CommandHandler.ChannelsLinkedList));
             }
-           
+
         }
         [Command("prefix")]
         public async Task prefix([Optional][Remainder]string Userprefix)
@@ -129,7 +129,7 @@ namespace ChannelLinkerBot.Modules
             {
                 MessagePrefixDTO Prefix = new MessagePrefixDTO();
                 Prefix.GuildID = Context.Guild.Id;
-                Prefix.Prefix = Userprefix.Replace("[USER]", Context.User.Mention );
+                Prefix.Prefix = Userprefix;
                 CommandHandler.MessagePrefixList.Add(Prefix);
                 await Context.Channel.SendMessageAsync("Changes have been saved!");
             }
@@ -138,7 +138,7 @@ namespace ChannelLinkerBot.Modules
                 await Context.Channel.SendMessageAsync("Prefix deleted!");
             }
             File.WriteAllText("MessagePrefix.json", JsonConvert.SerializeObject(CommandHandler.MessagePrefixList));
-            
+
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -100,7 +100,23 @@ namespace UtilityBot
 
                             if (prefix.Prefix != null)
                             {
-                                await To.SendMessageAsync("*"+prefix.Prefix.Replace("[CHANNEL]", "**"+From.Name+"**") + "*" + context.Message.Content);
+                                if (prefix.Prefix.Contains("[EMBED]"))
+                                {
+                                    if (prefix.Prefix == "[EMBED]")
+                                    {
+                                        await To.SendMessageAsync("", false, SimpleEmbed(new Color(1f, 1f, 1f), "Message in " + From.Name, context.Message.Content));
+                                    }
+                                    else
+                                    {
+                                        await To.SendMessageAsync("", false, SimpleEmbed(new Color(1f, 1f, 1f), "Message in " + From.Name, prefix.Prefix.Replace("[EMBED]", "").Replace("[CHANNEL]", "**" + From.Name + "**").Replace("[USER]", context.User.Mention).Replace("[_USER_]", "**" + context.User.Username + "**") + "  :  " + context.Message.Content));
+                                    }
+
+                                }
+                                else
+                                {
+                                    await To.SendMessageAsync("*" + prefix.Prefix.Replace("[CHANNEL]", "**" + From.Name + "**").Replace("[USER]", context.User.Mention).Replace("[_USER_]", "**" + context.User.Username + "**") + "* : " + context.Message.Content);
+                                }
+
                             }
                             else
                             {
@@ -112,7 +128,7 @@ namespace UtilityBot
 
                     }
                 }
-                
+
             }
             catch (Exception)
             {
@@ -126,9 +142,9 @@ namespace UtilityBot
 
             if (!ParseTriggers(message, ref argPos)) return;
 
-         
+
             var result = await _commands.ExecuteAsync(context, argPos, _provider);
-        
+
 
 
 
@@ -169,6 +185,17 @@ namespace UtilityBot
         public async Task ConfigureAsync()
         {
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
+        }
+        public static Embed SimpleEmbed(Color c, string title, string description)
+        {
+            EmbedBuilder eb = new EmbedBuilder();
+
+            eb.WithColor(c);
+            eb.Title = title;
+            eb.WithDescription(description);
+
+
+            return eb.Build();
         }
     }
 }

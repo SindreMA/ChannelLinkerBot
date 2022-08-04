@@ -1,79 +1,42 @@
-﻿using Discord;
-using Discord.Addons.InteractiveCommands;
-using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Serilog.Extensions.Logging;
+﻿
 using System;
 using System.Threading.Tasks;
-using UtilityBot.Services.Configuration;
-using UtilityBot.Services.Data;
-using UtilityBot.Services.Logging;
-using UtilityBot.Services.Tags;
-
-namespace UtilityBot
+using Discord;
+using Discord.WebSocket;
+namespace TemplateBot
 {
-    internal class Program
+    class Program
     {
-        private static void Main(string[] args) =>
-            new Program().RunAsync().GetAwaiter().GetResult();
-
-        private DiscordSocketClient _client;
-        private Config _config;
+        static void Main(string[] args)
+            => new Program().StartAsync().GetAwaiter().GetResult();
         private CommandHandler _handler;
-
-        private async Task RunAsync()
+        private DiscordSocketClient _client;
+        public async Task StartAsync()
         {
-            _client = new DiscordSocketClient(new DiscordSocketConfig
-            {
-#if DEBUG
-                LogLevel = LogSeverity.Debug,
-#else
-                LogLevel = LogSeverity.Verbose,
-#endif
-            });
-            _config = Config.Load();
-
-            var serviceProvider = ConfigureServices();
-
-            await _client.LoginAsync(TokenType.Bot, _config.Token);
+            await Log("Setting up the bot", ConsoleColor.Green);
+            _client = new DiscordSocketClient();
+            new CommandHandler(_client);
+            await Log("Logging in...", ConsoleColor.Green);
+            await _client.LoginAsync(TokenType.Bot, "YOUR TOKEN KEY HERE");
+            await Log("Connecting...", ConsoleColor.Green);
             await _client.StartAsync();
-
-            _handler = new CommandHandler(serviceProvider);
-            await _handler.ConfigureAsync();
-
+            _client.GuildAvailable += _client_GuildAvailable;
             await Task.Delay(-1);
+            _handler = new CommandHandler(_client);
+
         }
 
-        private IServiceProvider ConfigureServices()
+        private async Task _client_GuildAvailable(SocketGuild arg)
         {
-            // Configure logging
-            var logger = LogAdaptor.CreateLogger();
-            var loggerFactory = new LoggerFactory();
-            loggerFactory.AddProvider(new SerilogLoggerProvider(logger));
-            // Configure services
-            var services = new ServiceCollection()
-                .AddSingleton(_client)
-                .AddSingleton(_config)
-                .AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false}))
-                .AddSingleton(logger)
-                .AddSingleton<LogAdaptor>()
-                .AddSingleton<InteractiveService>()
-                .AddSingleton<TagService>()
-                /*
-                .AddDbContext<TagContext>(options =>
-                {
-                    options
-                        .UseNpgsql(_config.Database.ConnectionString)
-                        .UseLoggerFactory(loggerFactory);
-                })*/;
-            var provider = services.BuildServiceProvider();
-            // Autowire and create these dependencies now
-            provider.GetService<LogAdaptor>();
-            provider.GetService<TagService>();
-            return provider;
+
+            await Log(arg.Name + " Connected!", ConsoleColor.Green);
         }
+        public static async Task Log(string message, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(DateTime.Now + " : " + message, color);
+            Console.ResetColor();
+        }
+
     }
 }
